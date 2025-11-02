@@ -1,0 +1,122 @@
+name: Kernel Builder for Xiaomi Pad 6
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    
+    steps:
+    - name: Maximize build space
+      run: |
+        sudo rm -rf /usr/share/dotnet
+        sudo rm -rf /opt/ghc
+        sudo rm -rf "/usr/local/share/boost"
+        sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+        df -h
+    
+    - name: Setup build environment
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential \
+          bc \
+          bison \
+          flex \
+          libssl-dev \
+          libelf-dev \
+          git \
+          zip \
+          wget \
+          cpio \
+          python3 \
+          python3-pip
+    
+    - name: Download toolchain
+      run: |
+        # Download Clang toolchain (Clang r547379 - Clang 20)
+        git clone --depth 1 https://gitlab.com/alphadroid-project/prebuilts_clang_host_linux-x86_clang-r547379.git $HOME/tc
+        
+        # Verify clang installation
+        export PATH="$HOME/tc/bin:$PATH"
+        clang --version
+        llvm-objdump --version
+        ld.lld --version
+    
+    - name: Clone kernel source
+      run: |
+        # Clone your kernel repository (default branch)
+        git clone --depth 1 https://github.com/CuriousNom/android_kernel_xiaomi_pipa.git kernel
+        cd kernel
+        git log -1
+    
+    - name: Build kernel
+      run: |
+        cd kernel
+        
+        # Setup environment
+        export TOOLCHAIN_PATH=$HOME/tc/bin
+        export PATH="$TOOLCHAIN_PATH:$PATH"
+        
+        GIT_COMMIT_ID=$(git rev-parse --short=8 HEAD)
+        
+        # Export build variables
+        export KBUILD_BUILD_USER="aryan"
+        export KBUILD_BUILD_HOST="curiousnom"
+        export KBUILD_LAST_COMMIT=${GIT_COMMIT_ID}
+        
+        MAKE_ARGS="ARCH=arm64 O=out CC=clang LLVM=1 LLVM_IAS=1 CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_COMPAT=arm-linux-gnueabi- AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip"
+        
+        echo "Cleaning..."
+        rm -rf out/
+        rm -rf error.log
+        
+        echo "Cloning AnyKernel3 for packing kernel..."
+        git clone https://github.com/CuriousNom/AnyKernel3 -b pipa-br --single-branch --depth=1 anykernel
+        
+        echo "Building for PIPA..."
+        make $MAKE_ARGS pipa_defconfig
+        make $MAKE_ARGS -j$(nproc --all) 2> >(tee -a error.log >&2)
+        
+        if [ -f "out/arch/arm64/boot/Image.gz" ]; then
+            echo "Build successful!"
+        else
+            echo "Build failed!"
+            cat error.log
+            exit 1
+        fi
+        
+        # Package kernel
+        rm -rf anykernel/kernels/
+        mkdir -p anykernel/kernels/
+        cp out/arch/arm64/boot/Image.gz anykernel/kernels/
+        cp out/arch/arm64/boot/dtb anykernel/kernels/
+        
+        cd anykernel
+        ZIP_FILENAME=Kernel_BloodReaper_pipa_anykernel3_${GIT_COMMIT_ID}.zip
+        zip -r9 $ZIP_FILENAME ./* -x .git .gitignore out/ ./*.zip
+        mv $ZIP_FILENAME ../
+        cd ..
+        
+        echo "ZIP_FILENAME=$ZIP_FILENAME" >> $GITHUB_ENV
+    
+    - name: Upload kernel artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: kernel-${{ github.sha }}
+        path: |
+          kernel/*.zip
+          kernel/error.log
+        retention-days: 30
+    
+    - name: Create Release
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: kernel/*.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
