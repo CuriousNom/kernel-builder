@@ -118,14 +118,6 @@ jobs:
         cp out/arch/arm64/boot/Image.gz anykernel/kernels/
         cp out/arch/arm64/boot/dtb anykernel/kernels/
         
-        # Copy dtbo.img if it exists
-        if [ -f "out/arch/arm64/boot/dtbo.img" ]; then
-            echo "dtbo.img found, copying..."
-            cp out/arch/arm64/boot/dtbo.img anykernel/kernels/
-        else
-            echo "dtbo.img not found, skipping..."
-        fi
-        
         cd anykernel
         ZIP_FILENAME=Kernel_BloodReaper_pipa_anykernel3_${GIT_COMMIT_ID}.zip
         zip -r9 $ZIP_FILENAME ./* -x .git .gitignore out/ ./*.zip
@@ -134,19 +126,35 @@ jobs:
         
         echo "ZIP_FILENAME=$ZIP_FILENAME" >> $GITHUB_ENV
     
-    - name: Upload kernel artifact
+    - name: Upload kernel zip
       uses: actions/upload-artifact@v4
       with:
-        name: kernel-${{ github.sha }}
-        path: |
-          kernel/*.zip
-          kernel/error.log
+        name: kernel-zip-${{ github.sha }}
+        path: kernel/*.zip
         retention-days: 30
+    
+    - name: Upload dtbo image
+      uses: actions/upload-artifact@v4
+      with:
+        name: dtbo-${{ github.sha }}
+        path: kernel/out/arch/arm64/boot/dtbo.img
+        retention-days: 30
+    
+    - name: Upload error log (if exists)
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: error-log-${{ github.sha }}
+        path: kernel/error.log
+        retention-days: 7
+        if-no-files-found: ignore
     
     - name: Create Release
       if: startsWith(github.ref, 'refs/tags/')
       uses: softprops/action-gh-release@v1
       with:
-        files: kernel/*.zip
+        files: |
+          kernel/*.zip
+          kernel/out/arch/arm64/boot/dtbo.img
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
