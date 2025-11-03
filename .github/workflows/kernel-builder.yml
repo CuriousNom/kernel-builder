@@ -41,11 +41,21 @@ jobs:
           python3 \
           python3-pip
     
+    - name: Cache toolchain
+      id: cache-toolchain
+      uses: actions/cache@v4
+      with:
+        path: ~/tc
+        key: clang-r547379
+    
     - name: Download toolchain
+      if: steps.cache-toolchain.outputs.cache-hit != 'true'
       run: |
         # Download Clang toolchain (Clang r547379 - Clang 20)
         git clone --depth 1 https://gitlab.com/alphadroid-project/prebuilts_clang_host_linux-x86_clang-r547379.git $HOME/tc
-        
+    
+    - name: Verify toolchain
+      run: |
         # Verify clang installation
         export PATH="$HOME/tc/bin:$PATH"
         clang --version
