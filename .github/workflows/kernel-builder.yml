@@ -108,6 +108,14 @@ jobs:
         cp out/arch/arm64/boot/Image.gz anykernel/kernels/
         cp out/arch/arm64/boot/dtb anykernel/kernels/
         
+        # Copy dtbo.img if it exists
+        if [ -f "out/arch/arm64/boot/dtbo.img" ]; then
+            echo "dtbo.img found, copying..."
+            cp out/arch/arm64/boot/dtbo.img anykernel/kernels/
+        else
+            echo "dtbo.img not found, skipping..."
+        fi
+        
         cd anykernel
         ZIP_FILENAME=Kernel_BloodReaper_pipa_anykernel3_${GIT_COMMIT_ID}.zip
         zip -r9 $ZIP_FILENAME ./* -x .git .gitignore out/ ./*.zip
