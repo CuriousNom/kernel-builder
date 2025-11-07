@@ -74,6 +74,9 @@ jobs:
           git clone --depth 1 -b $BRANCH https://github.com/Matrixx-Devices/android_kernel_xiaomi_pipa.git kernel
         fi
         cd kernel
+        CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+        echo "KERNEL_BRANCH=$CURRENT_BRANCH" >> $GITHUB_ENV
+        echo "Current branch: $CURRENT_BRANCH"
         git log -1
     
     - name: Build kernel
@@ -129,24 +132,27 @@ jobs:
     - name: Upload kernel zip
       uses: actions/upload-artifact@v4
       with:
-        name: kernel-zip-${{ github.sha }}
+        name: Kernel-${{ env.KERNEL_BRANCH }}-${{ github.run_number }}
         path: kernel/*.zip
         retention-days: 30
+        compression-level: 0
     
     - name: Upload dtbo image
       uses: actions/upload-artifact@v4
       with:
-        name: dtbo-${{ github.sha }}
+        name: dtbo-${{ env.KERNEL_BRANCH }}-${{ github.run_number }}
         path: kernel/out/arch/arm64/boot/dtbo.img
         retention-days: 30
+        compression-level: 0
     
     - name: Upload error log (if exists)
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: error-log-${{ github.sha }}
+        name: error-log-${{ env.KERNEL_BRANCH }}-${{ github.run_number }}
         path: kernel/error.log
         retention-days: 7
+        compression-level: 0
         if-no-files-found: ignore
     
     - name: Create Release
