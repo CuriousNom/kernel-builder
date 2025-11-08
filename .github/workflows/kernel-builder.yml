@@ -111,7 +111,7 @@ jobs:
         git clone https://github.com/CuriousNom/AnyKernel3 -b pipa-br --single-branch --depth=1 anykernel
         
         echo "Building for PIPA..."
-        make $MAKE_ARGS pipa_defconfig
+        make $MAKE_ARGS vendor/pipa_user_defconfig
         make $MAKE_ARGS -j$(nproc --all) 2> >(tee -a error.log >&2)
         
         if [ -f "out/arch/arm64/boot/Image.gz" ]; then
