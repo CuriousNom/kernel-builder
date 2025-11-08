@@ -88,6 +88,13 @@ jobs:
         export PATH="$TOOLCHAIN_PATH:$PATH"
         
         GIT_COMMIT_ID=$(git rev-parse --short=8 HEAD)
+        BRANCH_NAME="${{ env.KERNEL_BRANCH }}"
+        
+        echo "========================================="
+        echo "Building Kernel"
+        echo "Branch: $BRANCH_NAME"
+        echo "Commit: $GIT_COMMIT_ID"
+        echo "========================================="
         
         # Export build variables
         export KBUILD_BUILD_USER="aryan"
