@@ -134,15 +134,19 @@ jobs:
         mv $ZIP_FILENAME ../
         cd ..
         
-        echo "ZIP_FILENAME=$ZIP_FILENAME" >> $GITHUB_ENV
+        # Move kernel zip to consistent name for upload
+        mv *.zip kernel-flashable.zip
+        
+        echo "Build complete!"
+        echo "Kernel zip: kernel-flashable.zip"
+        echo "DTBO image: out/arch/arm64/boot/dtbo.img"
     
     - name: Upload kernel zip
       uses: actions/upload-artifact@v4
       with:
         name: Kernel-${{ env.KERNEL_BRANCH }}-${{ github.run_number }}
-        path: kernel/*.zip
+        path: kernel/kernel-flashable.zip
         retention-days: 30
-        compression-level: 0
     
     - name: Upload dtbo image
       uses: actions/upload-artifact@v4
@@ -150,7 +154,6 @@ jobs:
         name: dtbo-${{ env.KERNEL_BRANCH }}-${{ github.run_number }}
         path: kernel/out/arch/arm64/boot/dtbo.img
         retention-days: 30
-        compression-level: 0
     
     - name: Upload error log (if exists)
       if: always()
@@ -159,7 +162,6 @@ jobs:
         name: error-log-${{ env.KERNEL_BRANCH }}-${{ github.run_number }}
         path: kernel/error.log
         retention-days: 7
-        compression-level: 0
         if-no-files-found: ignore
     
     - name: Create Release
