@@ -134,18 +134,15 @@ jobs:
         mv $ZIP_FILENAME ../
         cd ..
         
-        # Move kernel zip to consistent name for upload
-        mv *.zip kernel-flashable.zip
-        
         echo "Build complete!"
-        echo "Kernel zip: kernel-flashable.zip"
+        echo "Kernel zip: $ZIP_FILENAME"
         echo "DTBO image: out/arch/arm64/boot/dtbo.img"
     
     - name: Upload kernel zip
       uses: actions/upload-artifact@v4
       with:
         name: Kernel-${{ env.KERNEL_BRANCH }}-${{ github.run_number }}
-        path: kernel/kernel-flashable.zip
+        path: kernel/*.zip
         retention-days: 30
     
     - name: Upload dtbo image
