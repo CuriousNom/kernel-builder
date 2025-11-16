@@ -1,4 +1,4 @@
-name: Kernel Builder for Xiaomi Pad 6
+name: Kernel Builder for Redmi Note 10 Pro (sweet)
 
 on:
   push:
@@ -10,6 +10,11 @@ on:
         description: 'Kernel branch to build (leave empty for default branch)'
         required: false
         default: ''
+      clean_build:
+        description: 'Clean build (removes out folder)'
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   build:
@@ -39,7 +44,8 @@ jobs:
           wget \
           cpio \
           python3 \
-          python3-pip
+          python3-pip \
+          sed
     
     - name: Cache toolchain
       id: cache-toolchain
@@ -68,10 +74,10 @@ jobs:
         BRANCH="${{ github.event.inputs.kernel_branch }}"
         if [ -z "$BRANCH" ]; then
           echo "No branch specified, using default branch"
-          git clone --depth 1 https://github.com/Matrixx-Devices/android_kernel_xiaomi_pipa.git kernel
+          git clone --depth 1 https://github.com/CuriousNom/android_kernel_xiaomi_sweet.git kernel
         else
           echo "Building branch: $BRANCH"
-          git clone --depth 1 -b $BRANCH https://github.com/Matrixx-Devices/android_kernel_xiaomi_pipa.git kernel
+          git clone --depth 1 -b $BRANCH https://github.com/CuriousNom/android_kernel_xiaomi_sweet.git kernel
         fi
         cd kernel
         CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
@@ -87,11 +93,13 @@ jobs:
         export TOOLCHAIN_PATH=$HOME/tc/bin
         export PATH="$TOOLCHAIN_PATH:$PATH"
         
+        DEVICE="sweet"
+        KERNEL_NAME="Oxygen"
         GIT_COMMIT_ID=$(git rev-parse --short=8 HEAD)
         BRANCH_NAME="${{ env.KERNEL_BRANCH }}"
         
         echo "========================================="
-        echo "Building Kernel"
+        echo "Building Oxygen Kernel for Sweet"
         echo "Branch: $BRANCH_NAME"
         echo "Commit: $GIT_COMMIT_ID"
         echo "========================================="
@@ -103,54 +111,95 @@ jobs:
         
         MAKE_ARGS="ARCH=arm64 O=out CC=clang LLVM=1 LLVM_IAS=1 CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_COMPAT=arm-linux-gnueabi- AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip"
         
-        echo "Cleaning..."
-        rm -rf out/
+        # Clean if requested
+        if [ "${{ github.event.inputs.clean_build }}" = "true" ]; then
+          echo "Cleaning..."
+          rm -rf out/
+          rm -rf error.log
+          echo "Cleaned output folder"
+        fi
+        
+        echo "Cleaning old error logs..."
         rm -rf error.log
         
         echo "Cloning AnyKernel3 for packing kernel..."
-        git clone https://github.com/CuriousNom/AnyKernel3 -b pipa-br --single-branch --depth=1 anykernel
-        
-        echo "Building for PIPA..."
-        make $MAKE_ARGS pipa_defconfig
-        make $MAKE_ARGS -j$(nproc --all) 2> >(tee -a error.log >&2)
-        
-        if [ -f "out/arch/arm64/boot/Image.gz" ]; then
-            echo "Build successful!"
-        else
-            echo "Build failed!"
-            cat error.log
+        if ! git clone -q --depth 1 https://github.com/CuriousNom/AnyKernel3.git -b sweet AnyKernel3; then
+            echo -e "\nAnyKernel3 repo couldn't be cloned from GitHub! Aborting..."
             exit 1
         fi
         
-        # Package kernel
-        rm -rf anykernel/kernels/
-        mkdir -p anykernel/kernels/
-        cp out/arch/arm64/boot/Image.gz anykernel/kernels/
-        cp out/arch/arm64/boot/dtb anykernel/kernels/
+        echo "Building for sweet..."
+        make $MAKE_ARGS sweet_defconfig
+        make $MAKE_ARGS -j$(nproc --all) 2> >(tee -a error.log >&2)
         
-        cd anykernel
-        ZIP_FILENAME=Kernel_BloodReaper_pipa_anykernel3_${GIT_COMMIT_ID}.zip
+        kernel="out/arch/arm64/boot/Image.gz"
+        dtbo="out/arch/arm64/boot/dtbo.img"
+        dtb="out/arch/arm64/boot/dtb.img"
+        
+        if [ ! -f "$kernel" ]; then
+            echo -e "\nThe file [$kernel] does not exist. Build failed."
+            if [ -f "error.log" ]; then
+              echo "Error log contents:"
+              cat error.log
+            fi
+            exit 1
+        fi
+        
+        echo -e "\nKernel compiled successfully! Zipping up...\n"
+        
+        # Modify anykernel.sh to replace device names
+        sed -i "s/device\.name1=.*/device.name1=sweet/" AnyKernel3/anykernel.sh
+        sed -i "s/device\.name2=.*/device.name2=sweetin/" AnyKernel3/anykernel.sh
+        
+        rm -rf AnyKernel3/kernels/
+        mkdir -p AnyKernel3/kernels/
+        cp $kernel AnyKernel3/kernels/
+        
+        # Copy dtbo and dtb if they exist
+        if [ -f "$dtbo" ]; then
+            cp $dtbo AnyKernel3/kernels/
+            echo "DTBO image copied"
+        fi
+        
+        if [ -f "$dtb" ]; then
+            cp $dtb AnyKernel3/kernels/
+            echo "DTB image copied"
+        fi
+        
+        cd AnyKernel3
+        ZIP_FILENAME="Kernel_Oxygen_sweet_anykernel3_${GIT_COMMIT_ID}.zip"
         zip -r9 $ZIP_FILENAME ./* -x .git .gitignore out/ ./*.zip
         mv $ZIP_FILENAME ../
         cd ..
         
+        echo -e "\nBuild for sweet finished."
+        echo "Kernel zip: $ZIP_FILENAME"
+        
+        # Save ZIP filename for later steps
         echo "ZIP_FILENAME=$ZIP_FILENAME" >> $GITHUB_ENV
     
     - name: Upload kernel zip
       uses: actions/upload-artifact@v4
       with:
-        name: Kernel-${{ env.KERNEL_BRANCH }}-${{ github.run_number }}
-        path: kernel/*.zip
+        name: Oxygen-Kernel-${{ env.KERNEL_BRANCH }}-${{ github.run_number }}
+        path: kernel/Kernel_Oxygen_sweet_*.zip
         retention-days: 30
-        compression-level: 0
     
     - name: Upload dtbo image
       uses: actions/upload-artifact@v4
+      if: hashFiles('kernel/out/arch/arm64/boot/dtbo.img') != ''
       with:
         name: dtbo-${{ env.KERNEL_BRANCH }}-${{ github.run_number }}
         path: kernel/out/arch/arm64/boot/dtbo.img
         retention-days: 30
-        compression-level: 0
+    
+    - name: Upload dtb image
+      uses: actions/upload-artifact@v4
+      if: hashFiles('kernel/out/arch/arm64/boot/dtb.img') != ''
+      with:
+        name: dtb-${{ env.KERNEL_BRANCH }}-${{ github.run_number }}
+        path: kernel/out/arch/arm64/boot/dtb.img
+        retention-days: 30
     
     - name: Upload error log (if exists)
       if: always()
@@ -159,7 +208,6 @@ jobs:
         name: error-log-${{ env.KERNEL_BRANCH }}-${{ github.run_number }}
         path: kernel/error.log
         retention-days: 7
-        compression-level: 0
         if-no-files-found: ignore
     
     - name: Create Release
@@ -167,7 +215,8 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         files: |
-          kernel/*.zip
+          kernel/Kernel_Oxygen_sweet_*.zip
           kernel/out/arch/arm64/boot/dtbo.img
+          kernel/out/arch/arm64/boot/dtb.img
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
