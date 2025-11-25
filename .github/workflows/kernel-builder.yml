@@ -114,7 +114,7 @@ jobs:
         make $MAKE_ARGS pipa_defconfig
         make $MAKE_ARGS -j$(nproc --all) 2> >(tee -a error.log >&2)
         
-        if [ -f "out/arch/arm64/boot/Image.gz" ]; then
+        if [ -f "out/arch/arm64/boot/Image" ]; then
             echo "Build successful!"
         else
             echo "Build failed!"
@@ -125,7 +125,7 @@ jobs:
         # Package kernel
         rm -rf anykernel/kernels/
         mkdir -p anykernel/kernels/
-        cp out/arch/arm64/boot/Image.gz anykernel/kernels/
+        cp out/arch/arm64/boot/Image anykernel/kernels/
         cp out/arch/arm64/boot/dtb anykernel/kernels/
         
         cd anykernel
