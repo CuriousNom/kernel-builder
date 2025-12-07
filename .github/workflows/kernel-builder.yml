@@ -111,7 +111,7 @@ jobs:
         git clone https://github.com/CuriousNom/AnyKernel3 -b pipa-br --single-branch --depth=1 anykernel
         
         echo "Building for PIPA..."
-        make $MAKE_ARGS pipa_defconfig
+        make $MAKE_ARGS vendor/kona-perf_defconfig vendor/debugfs.config vendor/xiaomi/sm8250-common.config vendor/xiaomi/pipa.config 
         make $MAKE_ARGS -j$(nproc --all) 2> >(tee -a error.log >&2)
         
         if [ -f "out/arch/arm64/boot/Image" ]; then
@@ -126,7 +126,6 @@ jobs:
         rm -rf anykernel/kernels/
         mkdir -p anykernel/kernels/
         cp out/arch/arm64/boot/Image anykernel/kernels/
-        cp out/arch/arm64/boot/dtb anykernel/kernels/
         
         cd anykernel
         ZIP_FILENAME=Kernel_pipa_AOSP_${GIT_COMMIT_ID}.zip
