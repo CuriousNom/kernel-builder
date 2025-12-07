@@ -68,10 +68,10 @@ jobs:
         BRANCH="${{ github.event.inputs.kernel_branch }}"
         if [ -z "$BRANCH" ]; then
           echo "No branch specified, using default branch"
-          git clone --depth 1 https://github.com/Matrixx-Devices/android_kernel_xiaomi_pipa.git kernel
+          git clone --depth 1 https://github.com/nicholaswww/android_kernel_xiaomi_sm8250.git kernel
         else
           echo "Building branch: $BRANCH"
-          git clone --depth 1 -b $BRANCH https://github.com/Matrixx-Devices/android_kernel_xiaomi_pipa.git kernel
+          git clone --depth 1 -b $BRANCH https://github.com/nicholaswww/android_kernel_xiaomi_sm8250.git kernel
         fi
         cd kernel
         CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
@@ -97,8 +97,8 @@ jobs:
         echo "========================================="
         
         # Export build variables
-        export KBUILD_BUILD_USER="aryan"
-        export KBUILD_BUILD_HOST="curiousnom"
+        export KBUILD_BUILD_USER="nicholas"
+        export KBUILD_BUILD_HOST="nicholaswww"
         export KBUILD_LAST_COMMIT=${GIT_COMMIT_ID}
         
         MAKE_ARGS="ARCH=arm64 O=out CC=clang LLVM=1 LLVM_IAS=1 CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_COMPAT=arm-linux-gnueabi- AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip"
@@ -129,7 +129,7 @@ jobs:
         cp out/arch/arm64/boot/dtb anykernel/kernels/
         
         cd anykernel
-        ZIP_FILENAME=Kernel_BloodReaper_pipa_AOSP_${GIT_COMMIT_ID}.zip
+        ZIP_FILENAME=Kernel_pipa_AOSP_${GIT_COMMIT_ID}.zip
         zip -r9 $ZIP_FILENAME ./* -x .git .gitignore out/ ./*.zip
         mv $ZIP_FILENAME ../
         cd ..
