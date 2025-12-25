@@ -111,7 +111,7 @@ jobs:
         git clone https://github.com/CuriousNom/AnyKernel3 -b pipa-br --single-branch --depth=1 anykernel
         
         echo "Building for PIPA..."
-        make $MAKE_ARGS pipa_defconfig
+        make $MAKE_ARGS vendor/pipa_defconfig
         make $MAKE_ARGS -j$(nproc --all) 2> >(tee -a error.log >&2)
         
         if [ -f "out/arch/arm64/boot/Image" ]; then
@@ -129,7 +129,7 @@ jobs:
         cp out/arch/arm64/boot/dtb anykernel/kernels/
         
         cd anykernel
-        ZIP_FILENAME=Kernel_BloodReaper_pipa_AOSP_${GIT_COMMIT_ID}.zip
+        ZIP_FILENAME=Kernel_n0_pipa_AOSP_${GIT_COMMIT_ID}.zip
         zip -r9 $ZIP_FILENAME ./* -x .git .gitignore out/ ./*.zip
         mv $ZIP_FILENAME ../
         cd ..
