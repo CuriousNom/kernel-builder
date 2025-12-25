@@ -68,10 +68,10 @@ jobs:
         BRANCH="${{ github.event.inputs.kernel_branch }}"
         if [ -z "$BRANCH" ]; then
           echo "No branch specified, using default branch"
-          git clone --depth 1 https://github.com/Matrixx-Devices/android_kernel_xiaomi_pipa.git kernel
+          git clone --depth 1 https://github.com/CuriousNom/kernel_xiaomi_sm8250_n0.git kernel
         else
           echo "Building branch: $BRANCH"
-          git clone --depth 1 -b $BRANCH https://github.com/Matrixx-Devices/android_kernel_xiaomi_pipa.git kernel
+          git clone --depth 1 -b $BRANCH https://github.com/CuriousNom/kernel_xiaomi_sm8250_n0.git kernel
         fi
         cd kernel
         CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
