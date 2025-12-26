@@ -108,7 +108,7 @@ jobs:
         rm -rf error.log
         
         echo "Cloning AnyKernel3 for packing kernel..."
-        git clone https://github.com/CuriousNom/AnyKernel3 -b pipa-br --single-branch --depth=1 anykernel
+        git clone https://github.com/CuriousNom/AnyKernel3 -b pipa-n0 --single-branch --depth=1 anykernel
         
         echo "Building for PIPA..."
         make $MAKE_ARGS vendor/pipa_defconfig
