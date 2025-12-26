@@ -46,18 +46,14 @@ jobs:
       uses: actions/cache@v4
       with:
         path: ~/tc
-        key: clang-r563880b
+        key: clang-r547379
     
     - name: Download toolchain
-        if: steps.cache-toolchain.outputs.cache-hit != 'true'
-        run: |
-        # Download Google Clang toolchain (Clang r563880b)
-        mkdir -p $HOME/tc
-        wget https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/main-kernel/clang-r563880b.tar.gz -O $HOME/tc/clang.tar.gz
-        cd $HOME/tc
-        tar -xzf clang.tar.gz
-        rm clang.tar.gz
-        
+      if: steps.cache-toolchain.outputs.cache-hit != 'true'
+      run: |
+        # Download Clang toolchain (Clang r547379 - Clang 20)
+        git clone --depth 1 https://gitlab.com/alphadroid-project/prebuilts_clang_host_linux-x86_clang-r547379.git $HOME/tc
+    
     - name: Verify toolchain
       run: |
         # Verify clang installation
