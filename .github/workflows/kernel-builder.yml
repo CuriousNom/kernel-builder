@@ -42,18 +42,22 @@ jobs:
           python3-pip
     
     - name: Cache toolchain
-      id: cache-toolchain
-      uses: actions/cache@v4
-      with:
+        id: cache-toolchain
+        uses: actions/cache@v4
+        with:
         path: ~/tc
-        key: clang-r547379
-    
+        key: clang-r563880b  # Updated cache key
+
     - name: Download toolchain
       if: steps.cache-toolchain.outputs.cache-hit != 'true'
       run: |
-        # Download Clang toolchain (Clang r547379 - Clang 20)
-        git clone --depth 1 https://gitlab.com/alphadroid-project/prebuilts_clang_host_linux-x86_clang-r547379.git $HOME/tc
-    
+        # Download Google Clang toolchain (Clang r563880b)
+        mkdir -p $HOME/tc
+        cd $HOME/tc
+        wget https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/main-kernel/clang-r563880b.tar.gz
+        tar -xzf clang-r563880b.tar.gz
+        rm clang-r563880b.tar.gz
+        
     - name: Verify toolchain
       run: |
         # Verify clang installation
