@@ -49,14 +49,14 @@ jobs:
         key: clang-r563880b
     
     - name: Download toolchain
-      if: steps.cache-toolchain.outputs.cache-hit != 'true'
-      run: |
+        if: steps.cache-toolchain.outputs.cache-hit != 'true'
+        run: |
         # Download Google Clang toolchain (Clang r563880b)
         mkdir -p $HOME/tc
+        wget https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/main-kernel/clang-r563880b.tar.gz -O $HOME/tc/clang.tar.gz
         cd $HOME/tc
-        wget https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/main-kernel/clang-r563880b.tar.gz
-        tar -xzf clang-r563880b.tar.gz
-        rm clang-r563880b.tar.gz
+        tar -xzf clang.tar.gz
+        rm clang.tar.gz
         
     - name: Verify toolchain
       run: |
