@@ -46,8 +46,8 @@ jobs:
         uses: actions/cache@v4
         with:
         path: ~/tc
-        key: clang-r563880b  # Updated cache key
-
+        key: clang-r563880b
+    
     - name: Download toolchain
       if: steps.cache-toolchain.outputs.cache-hit != 'true'
       run: |
@@ -57,7 +57,7 @@ jobs:
         wget https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/main-kernel/clang-r563880b.tar.gz
         tar -xzf clang-r563880b.tar.gz
         rm clang-r563880b.tar.gz
-        
+    
     - name: Verify toolchain
       run: |
         # Verify clang installation
