@@ -171,3 +171,5 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
+
+The key fix: Under "Cache toolchain", the `with:` section must have `path:` and `key:` indented with **8 spaces** (2 spaces per indentation level × 4 levels).
