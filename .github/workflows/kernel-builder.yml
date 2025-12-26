@@ -1,3 +1,4 @@
+```yaml
 name: Kernel Builder for Xiaomi Pad 6
 
 on:
@@ -42,16 +43,15 @@ jobs:
           python3-pip
     
     - name: Cache toolchain
-        id: cache-toolchain
-        uses: actions/cache@v4
-        with:
+      id: cache-toolchain
+      uses: actions/cache@v4
+      with:
         path: ~/tc
         key: clang-r563880b
     
     - name: Download toolchain
       if: steps.cache-toolchain.outputs.cache-hit != 'true'
       run: |
-        # Download Google Clang toolchain (Clang r563880b)
         mkdir -p $HOME/tc
         cd $HOME/tc
         wget https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/main-kernel/clang-r563880b.tar.gz
@@ -60,7 +60,6 @@ jobs:
     
     - name: Verify toolchain
       run: |
-        # Verify clang installation
         export PATH="$HOME/tc/bin:$PATH"
         clang --version
         llvm-objdump --version
@@ -68,7 +67,6 @@ jobs:
     
     - name: Clone kernel source
       run: |
-        # Clone your kernel repository
         BRANCH="${{ github.event.inputs.kernel_branch }}"
         if [ -z "$BRANCH" ]; then
           echo "No branch specified, using default branch"
@@ -87,7 +85,6 @@ jobs:
       run: |
         cd kernel
         
-        # Setup environment
         export TOOLCHAIN_PATH=$HOME/tc/bin
         export PATH="$TOOLCHAIN_PATH:$PATH"
         
@@ -100,7 +97,6 @@ jobs:
         echo "Commit: $GIT_COMMIT_ID"
         echo "========================================="
         
-        # Export build variables
         export KBUILD_BUILD_USER="aryan"
         export KBUILD_BUILD_HOST="curiousnom"
         export KBUILD_LAST_COMMIT=${GIT_COMMIT_ID}
@@ -126,7 +122,6 @@ jobs:
             exit 1
         fi
         
-        # Package kernel
         rm -rf anykernel/kernels/
         mkdir -p anykernel/kernels/
         cp out/arch/arm64/boot/Image anykernel/kernels/
@@ -175,3 +170,4 @@ jobs:
           kernel/out/arch/arm64/boot/dtbo.img
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+```
