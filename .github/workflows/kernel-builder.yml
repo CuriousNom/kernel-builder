@@ -127,6 +127,7 @@ jobs:
         mkdir -p anykernel/kernels/
         cp out/arch/arm64/boot/Image anykernel/kernels/
         cp out/arch/arm64/boot/dtb anykernel/kernels/
+        cp out/arch/arm64/boot/dtbo.img anykernel/kernels/
         
         cd anykernel
         ZIP_FILENAME=Kernel_n0_pipa_${GIT_COMMIT_ID}.zip
