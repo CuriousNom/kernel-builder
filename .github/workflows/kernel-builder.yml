@@ -104,7 +104,7 @@ jobs:
         git clone https://github.com/CuriousNom/AnyKernel3 -b pipa-n0 --single-branch --depth=1 anykernel
         
         echo "Building for PIPA..."
-        make $MAKE_ARGS vendor/pipa_defconfig
+        make $MAKE_ARGS pipa_defconfig
         make $MAKE_ARGS dtbo.img
         
         echo "Build complete!"
