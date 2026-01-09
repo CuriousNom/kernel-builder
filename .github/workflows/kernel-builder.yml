@@ -1,4 +1,4 @@
-name: Kernel Builder for Xiaomi Pad 6
+name: Kernel Builder for Samsung Galaxy Tab A7
 
 on:
   push:
@@ -108,9 +108,9 @@ jobs:
         rm -rf error.log
         
         echo "Cloning AnyKernel3 for packing kernel..."
-        git clone https://github.com/CuriousNom/AnyKernel3 -b pipa-n0 --single-branch --depth=1 anykernel
+        git clone https://github.com/CuriousNom/AnyKernel3 -b gta4l --single-branch --depth=1 anykernel
         
-        echo "Building for PIPA..."
+        echo "Building for gta4l..."
         make $MAKE_ARGS gta4l_defconfig
         make $MAKE_ARGS -j$(nproc --all) 2> >(tee -a error.log >&2)
         
@@ -125,12 +125,10 @@ jobs:
         # Package kernel
         rm -rf anykernel/kernels/
         mkdir -p anykernel/kernels/
-        cp out/arch/arm64/boot/Image anykernel/kernels/
-        cp out/arch/arm64/boot/dtb anykernel/kernels/
-        cp out/arch/arm64/boot/dtbo.img anykernel/kernels/
+        cp out/arch/arm64/boot/Image anykernel/
         
         cd anykernel
-        ZIP_FILENAME=Kernel_n0_pipa_${GIT_COMMIT_ID}.zip
+        ZIP_FILENAME=Kernel_BloodReaper_gta4l_$(date +'%Y%m%d_%H%M%S')_${GIT_COMMIT_ID}.zip
         zip -r9 $ZIP_FILENAME ./* -x .git .gitignore out/ ./*.zip
         mv $ZIP_FILENAME ../
         cd ..
