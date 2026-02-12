@@ -78,6 +78,13 @@ jobs:
         echo "KERNEL_BRANCH=$CURRENT_BRANCH" >> $GITHUB_ENV
         echo "Current branch: $CURRENT_BRANCH"
         git log -1
+
+    - name: Sync kernel submodules
+      run: |
+        cd kernel
+        git submodule sync --recursive
+        git submodule update --init --recursive --depth 1
+        git submodule status
     
     - name: Build kernel
       run: |
